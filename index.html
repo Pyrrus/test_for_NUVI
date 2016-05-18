@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html ng-app="myModule">
+
+<head>
+    <meta charset="utf-8" />
+    <title>Test for NUVI</title>
+
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+
+
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.5/angular.min.js"></script>
+
+    <script src="http://cdn.zingchart.com/zingchart.min.js"></script>
+
+    <script src="http://cdn.zingchart.com/angular/zingchart-angularjs.js"></script>
+
+    <style type="text/css">
+        .row {
+            padding-top: 71px;
+        }
+        
+        .navbar-brand {
+            color: white !important;
+        }
+
+        .download {
+            color: white !important;
+        }
+
+
+    </style>
+
+
+</head>
+
+<body ng-controller="myController">
+
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+        <div class="container">
+            <div class="navbar-header">
+
+                <div ng-hide="showme">
+                    <a class="navbar-brand" href="" ng-click="showme=true">Show Graph</a>
+                </div>
+
+                <div ng-show="showme">
+                    <a class="navbar-brand" href="" ng-click="showme=false">Show Data</a>
+                </div>
+
+            </div>
+
+            <div id="navbar" class="navbar-collapse collapse">
+
+                <ul class="nav navbar-nav navbar-right">
+                    <li><a class="download" href="" ng-click="MakeFile()">Download</a></li>
+
+                </ul>
+            </div>
+
+    </nav>
+
+    <div class="row" ng-hide="showme">
+        <div class="col-md-2"></div>
+
+        <div class="col-md-8">
+            <div class="panel panel-primary" ng-repeat="data in data | limitTo: totalDisplayed">
+
+                <div class="panel-body">
+
+
+                    <div class="col-md-6">
+
+                        <p>Actor Name: {{data.actor_name}}</p>
+
+                        <p>Actor Username: {{data.actor_username}}</p>
+
+                        <p>Actor Avator: <br />
+
+                            <img class="img-responsive" src="{{data.actor_avator}}" alt="{{data.actor_username}}">
+
+                    </div>
+
+                    <div class="col-md-6">
+                        <p>Actor Description: {{data.actor_description}}</p>
+
+                        <p>Actor Provider: {{data.provider}}</p>
+
+                        <p>Actor URL: <a href="{{data.actor_url}}">Link to Actor Post</a></p>
+
+                        <p ng-if="data.activity_latitude != null">Activity Latitude: {{data.activity_latitude}}</p>
+
+                        <p ng-if="data.activity_longitude != null">Activity Longitude: {{data.activity_longitude}}</p>
+
+                        <p>Activity Date: {{data.activity_date}}</p>
+
+                        <div ng-if="data.activity_message == pic">
+                            <p>Activity Message: <a href="{{data.activity_message}}" download>link to the message</a></p>
+                        </div>
+
+                        <div ng-if="data.activity_message != pic">
+                            <p> Activity Message: {{data.activity_message}}</p>
+                        </div>
+
+
+                        <p>Activity Likes: {{data.activity_likes}}</p>
+
+                        <p>Activity Shares: {{data.activity_shares}}</p>
+
+                        <p>Activity Comments: {{data.activity_comments}}</p>
+
+                        <p ng-if="data.activity_attachment_type != null">Activity Attachment Type: {{data.activity_attachment_type}}</p>
+
+                        <div ng-if="data.activity_attachment == type">
+                            <p>Activity Attachment: <a href="{{data.activity_attachment}}" download>download to the attachment</a></p>
+                        </div>
+
+                        <p>Activity Sentiment: {{data.activity_sentiment}}</p>
+                    </div>
+                </div>
+            </div>
+
+            <btn ng-if="totalDisplayed != 10" class="btn  btn-lg btn-primary" ng-click="loadLess()">Load less</btn>
+
+
+            <btn class="btn  btn-lg btn-primary pull-right" ng-if="totalDisplayed < max" ng-click="loadMore()">Load more</btn>
+        </div>
+
+        <div class="col-md-2"></div>
+    </div>
+
+    <div class="row" ng-show="showme">
+        <div class="col-md-2"></div>
+
+        <div class="col-md-8">
+
+            <zingchart id="myChart" zc-json="myJson" zc-height=5 00 zc-width=6 00></zingchart>
+
+        </div>
+
+        <div class="col-md-2"></div>
+    </div>
+
+    <script>
+        angular.module('myModule', ['zingchart-angularjs'])
+            .controller('myController', function($scope, $http) {
+                $scope.max = 0;
+
+                var Twitter = 0;
+
+                var Facebook = 0;
+
+                var Instagram = 0;
+
+                var Reddit = 0;
+
+                var Tumblr = 0;
+
+                var Other = 0;
+
+
+
+                $http.get("https://nuvi-challenge.herokuapp.com/activities")
+                    .then(function(response) {
+                        $scope.data = response.data;
+
+                        var max = response.data;
+
+                        $scope.max = response.data.length;
+
+                        for (var i = 0; i < response.data.length; i++) {
+
+
+                            if (response.data[i].provider == "twitter") {
+                                Twitter++;
+                            } else if (response.data[i].provider == "facebook") {
+                                Facebook++;
+                            } else if (response.data[i].provider == "instagram") {
+                                Instagram++;
+                            } else {
+                                Tumblr++;
+                            }
+
+
+                        }
+
+                        // for the pie chart
+                        $scope.myJson = {
+                            globals: {
+                                shadow: false,
+                                fontFamily: "Verdana",
+                                fontWeight: "100"
+                            },
+                            type: "pie",
+                            backgroundColor: "#fff",
+
+                            legend: {
+                                layout: "x5",
+                                position: "50%",
+                                borderColor: "transparent",
+                                marker: {
+                                    borderRadius: 10,
+                                    borderColor: "transparent"
+                                }
+                            },
+                            tooltip: {
+                                text: "%v requests"
+                            },
+                            plot: {
+                                refAngle: "-90",
+                                borderWidth: "0px",
+                                valueBox: {
+                                    placement: "in",
+                                    text: "%npv %",
+                                    fontSize: "15px",
+                                    textAlpha: 1,
+                                }
+                            },
+                            series: [{
+                                text: "Facebook",
+                                values: [Facebook],
+                                backgroundColor: "#FA6E6E #FA9494",
+                            }, {
+                                text: "Twitter",
+                                values: [Twitter],
+                                backgroundColor: "#F1C795 #feebd2"
+                            }, {
+                                text: "Instagram",
+                                values: [Instagram],
+                                backgroundColor: "#FDAA97 #FC9B87"
+                            }, {
+                                text: "Tumblr",
+                                values: [Tumblr],
+                                backgroundColor: "#D2D6DE"
+                            }]
+                        };
+
+                    });
+
+                // some odd reason the one of the json data have a space at the start of the url
+
+                $scope.pic = ' https://placehold.it/500x500.jpeg/ffffff/000';
+
+                $scope.type = 'https://placehold.it/500x500.jpeg/ffffff/000';
+
+                $scope.totalDisplayed = 10;
+
+                $scope.startPoint = 0;
+
+                $scope.loadMore = function() {
+                    $scope.totalDisplayed += 10;
+                };
+
+                $scope.loadLess = function() {
+                    $scope.totalDisplayed -= 10;
+
+                };
+
+                $scope.MakeFile = function() {
+
+                    $http.get("https://nuvi-challenge.herokuapp.com/activities")
+                        .then(function(response) {
+
+
+                            $scope.FileJson = JSON.stringify(response.data);
+
+                            setCookie("SESSION", "NUVI-12345");
+
+                            var x = document.cookie;
+
+                            var textFile = new Blob([x + "  " + $scope.FileJson], {
+                                type: 'text/plain'
+                            });
+
+                            var SaveAs = "request.txt";
+
+
+                            var downloadLink = document.createElement("a");
+
+                            downloadLink.download = SaveAs;
+
+                            downloadLink.innerHTML = "Hide me";
+
+
+                            window.URL = window.URL || window.webkitURL;
+
+
+                            downloadLink.href = window.URL.createObjectURL(textFile);
+
+                            downloadLink.onclick = destroyRemoveElement;
+
+                            downloadLink.style.display = "none";
+
+                            document.body.appendChild(downloadLink);
+
+                            downloadLink.click();
+
+                        });
+
+
+                };
+
+
+
+            });
+
+
+        // to remove element
+        function destroyRemoveElement(event) {
+            document.body.removeChild(event.target);
+        }
+
+
+        // make a cookie
+        function setCookie(name, value) {
+
+            document.cookie = name + "=" + value;
+        }
+    </script>
+</body>
+
+</html>
